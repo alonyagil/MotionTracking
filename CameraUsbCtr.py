@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from os import path
 import argparse
 
-DUMP_PATH = 'C:\gitRepos\cameraStuff\data'
+DUMP_PATH = '..\data'
 N_CAM_CHANNEL = 3
 MIN_FEATURE_SIZE = 10
 TIMEOUT_FRAMES = 1000
@@ -161,8 +161,14 @@ class Camera:
         ret, newFrame = self.cam.read()
         if not ret:
             print("failed to grab frame")
-            return
+            return {}
         targetBox = foundFeatures[maxFeatureIdx]['box_xywh']
         target = newFrame[targetBox[1] : targetBox[1] + targetBox[3], targetBox[0] : targetBox[0] + targetBox[2], :]
         cv2.imwrite(path.join(DUMP_PATH, 'target.tif'), target)
+        targetMask = labels == foundFeatures[maxFeatureIdx]['label']
+        cv2.imwrite(path.join(DUMP_PATH, 'targetMask.tif'), 255 * targetMask.astype(np.uint8))
+        targetPix = np.zeros((self.H, self.W, N_CAM_CHANNEL), dtype=np.uint8)
+        targetPix[targetMask] = newFrame[targetMask]
+        cv2.imwrite(path.join(DUMP_PATH, 'targetPixels.tif'), targetPix)
+        return {'targetFrame': target, 'targetBox': targetBox, 'targetMask': targetMask, 'frame': newFrame}
 
