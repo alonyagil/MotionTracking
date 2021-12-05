@@ -3,8 +3,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from os import path
 import argparse
+import pickle
 
-DUMP_PATH = '..\data'
+DUMP_PATH = '..\MotionTracking\data'
 N_CAM_CHANNEL = 3
 MIN_FEATURE_SIZE = 10
 TIMEOUT_FRAMES = 1000
@@ -126,7 +127,7 @@ class Camera:
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
-    def acquireTarget(self, staticCounts=100):
+    def acquireTarget(self, staticCounts=500):
         print('Updating reoccurent movers')
         self.updateReocurrentMovers()
         print('Place object in camera FOV')
@@ -172,3 +173,10 @@ class Camera:
         cv2.imwrite(path.join(DUMP_PATH, 'targetPixels.tif'), targetPix)
         return {'targetFrame': target, 'targetBox': targetBox, 'targetMask': targetMask, 'frame': newFrame}
 
+if __name__ == '__main__':
+    cam = Camera()
+    cam.grabScene(nFrames=50)
+    #cam.showMoveDetect()
+    targetData = cam.acquireTarget()
+    with open(path.join(DUMP_PATH, 'targetData.pkl'), 'wb') as file:
+        pickle.dump(targetData, file)
